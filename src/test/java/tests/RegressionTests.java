@@ -4,17 +4,18 @@ import io.restassured.http.ContentType;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
+import static io.restassured.http.ContentType.JSON;
+import static org.hamcrest.Matchers.*;
+import static utils.FileUtils.readStringFromFile;
 
 
 public class RegressionTests extends TestBase {
 
     @Test
-    void successfulSignUPTest() {
+    void successfulSignUpTest() {
 
         given()
-                .contentType(ContentType.JSON)
+                .contentType(JSON)
                 .body("{ \"email\": \"tobias.funke@reqres.in\", \"password\": \"city\" }")
                 .when()
                 .post("/api/register")
@@ -29,7 +30,7 @@ public class RegressionTests extends TestBase {
     void updateMethodTest() {
 
         given()
-                .contentType(ContentType.JSON)
+                .contentType(JSON)
                 .body("{ \"name\": \"morpheus\", \"job\": \"zion resident\" }")
                 .when()
                 .put("/api/register")
@@ -41,9 +42,9 @@ public class RegressionTests extends TestBase {
 
 
     @Test
-    void findByNameInResorcesListTest() {
+    void findByNameInResourcesListTest() {
         given()
-                .contentType(ContentType.JSON)
+                .contentType(JSON)
                 .when()
                 .get("/api/unknown")
                 .then()
@@ -57,7 +58,7 @@ public class RegressionTests extends TestBase {
     void createJobTest() {
 
         given()
-                .contentType(ContentType.JSON)
+                .contentType(JSON)
                 .body("{ \"name\": \"morpheus\", \"job\": \"leader\" }")
                 .when()
                 .post("/api/users")
@@ -71,14 +72,40 @@ public class RegressionTests extends TestBase {
     }
 
     @Test
-    void verifyCertainUserIsRegistredTest() {
+    void verifyCertainUserIsRegisteredTest() {
         given()
-                .contentType(ContentType.JSON)
+                .contentType(JSON)
                 .when()
                 .get("/api/users?page=2")
                 .then()
                 .log().body()
                 .statusCode(200)
                 .body("data.find { it.first_name == 'Rachel' }.last_name", is("Howell"));
+    }
+
+    @Test
+    void verifyCertainUserIsRegisteredTest2() {
+        given()
+                .contentType(JSON)
+                .when()
+                .get("/api/users?page=2")
+                .then()
+                .log().body()
+                .statusCode(200)
+                .body("page", is(2));
+    }
+
+    @Test
+    void successLoginWithDataInFileTest() {
+        String data = readStringFromFile("./src/test/resources/login_data.txt");
+        given()
+                .contentType(ContentType.JSON)
+                .body(data)
+                .when()
+                .post("/api/login")
+                .then()
+                .statusCode(200)
+                .log().body()
+                .body("token", is(notNullValue()));
     }
 }
